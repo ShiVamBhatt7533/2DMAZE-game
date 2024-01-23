@@ -16,19 +16,22 @@ import games.spooky.gdx.nativefilechooser.NativeFileChooser;
  * It manages the screens and global resources like SpriteBatch and Skin.
  */
 public class MazeRunnerGame extends Game {
+
     // Screens
     private MenuScreen menuScreen;
     private GameScreen gameScreen;
 
     // Sprite Batch for rendering
     private SpriteBatch spriteBatch;
-    private Boolean paused=false;
+    private Boolean paused = false;
 
-    // UI Skin
-    private Skin skin;
+    public MenuScreen getMenuScreen() {
+        return menuScreen;
+    }
 
-    // Character animation downwards
-    private Animation<TextureRegion> characterDownAnimation;
+    public GameScreen getGameScreen() {
+        return gameScreen;
+    }
 
     public Boolean getPaused() {
         return paused;
@@ -38,10 +41,16 @@ public class MazeRunnerGame extends Game {
         this.paused = paused;
     }
 
+    // UI Skin
+    private Skin skin;
+
+    // Character animation downwards
+    private Animation<TextureRegion> characterDownAnimation;
+
     /**
      * Constructor for MazeRunnerGame.
      *
-     * @param fileChooser The file chooser for the game, typically used in desktop environment.
+     * @param fileChooser The file chooser for the game, typically used in the desktop environment.
      */
     public MazeRunnerGame(NativeFileChooser fileChooser) {
         super();
@@ -54,13 +63,9 @@ public class MazeRunnerGame extends Game {
     public void create() {
         spriteBatch = new SpriteBatch(); // Create SpriteBatch
         skin = new Skin(Gdx.files.internal("craft/craftacular-ui.json")); // Load UI skin
-        this.loadCharacterAnimation(); // Load character animation
+        loadCharacterAnimation(); // Load character animation
 
-        // Play some background music
-        // Background sound
-        Music backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal("background.mp3"));
-        backgroundMusic.setLooping(true);
-        backgroundMusic.play();
+        playBackgroundMusic(); // Play background music
 
         goToMenu(); // Navigate to the menu screen
     }
@@ -69,23 +74,19 @@ public class MazeRunnerGame extends Game {
      * Switches to the menu screen.
      */
     public void goToMenu() {
-        this.setScreen(new MenuScreen(this)); // Set the current screen to MenuScreen
-        if(!paused) {
-            if (gameScreen != null) {
-                gameScreen.dispose(); // Dispose the game screen if it exists
-                gameScreen = null;
-            }
-        }
+        menuScreen = new MenuScreen(this); // Create a new MenuScreen
+        setScreen(menuScreen); // Set the current screen to MenuScreen
+        if(!paused)
+            disposeGameScreen();
     }
+
     /**
      * Switches to the game screen.
      */
     public void goToGame() {
-        this.setScreen(new GameScreen(this)); // Set the current screen to GameScreen
-        if (menuScreen != null) {
-            menuScreen.dispose(); // Dispose the menu screen if it exists
-            menuScreen = null;
-        }
+        gameScreen = new GameScreen(this); // Create a new GameScreen
+        setScreen(gameScreen); // Set the current screen to GameScreen
+        disposeMenuScreen();
     }
 
     /**
@@ -110,6 +111,15 @@ public class MazeRunnerGame extends Game {
     }
 
     /**
+     * Plays background music.
+     */
+    private void playBackgroundMusic() {
+        Music backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal("background.mp3"));
+        backgroundMusic.setLooping(true);
+        backgroundMusic.play();
+    }
+
+    /**
      * Cleans up resources when the game is disposed.
      */
     @Override
@@ -118,6 +128,26 @@ public class MazeRunnerGame extends Game {
         getScreen().dispose(); // Dispose the current screen
         spriteBatch.dispose(); // Dispose the spriteBatch
         skin.dispose(); // Dispose the skin
+    }
+
+    /**
+     * Disposes the game screen if it exists.
+     */
+    public void disposeGameScreen() {
+        if (gameScreen != null) {
+            gameScreen.dispose();
+            gameScreen = null;
+        }
+    }
+
+    /**
+     * Disposes the menu screen if it exists.
+     */
+   public void disposeMenuScreen() {
+        if (menuScreen != null) {
+            menuScreen.dispose();
+            menuScreen = null;
+        }
     }
 
     // Getter methods

@@ -22,17 +22,12 @@ public class MenuScreen implements Screen {
 
     private final Stage stage;
     private final MazeRunnerGame game;
-    private TextButton loadMap;
-    private TextButton exit;
-    private TextButton returnMenu;
-    private TextButton newGame;
-    private TextButton resumeGame;
-    private Label victory;
-    private Label gameOver;
-    private Label pausedLabel;
-    private Label welcomeLabel;
-    private boolean pauseMenuVisible;
+    private TextButton loadMap, resumeGame, exit, returnMenu, newGame, goToGameButton;
+    private TextButton level1, level2, level3, level4, level5, custom;
+    private Label welcomeLabel, pausedLabel, gameOver, victory,levelLabel;
+    private boolean pauseMenuVisible,visible;
 
+    // Setter methods for injecting UI components from external classes
     public void setLoadMap(TextButton loadMap) {
         this.loadMap = loadMap;
     }
@@ -81,16 +76,14 @@ public class MenuScreen implements Screen {
         this.gameOver = gameOver;
     }
 
-    public boolean isPauseMenuVisible() {
-        return pauseMenuVisible;
-    }
-
-    public void setPauseMenuVisible(boolean pauseMenuVisible) {
-        this.pauseMenuVisible = pauseMenuVisible;
-    }
-
+    /**
+     * Constructor for MenuScreen.
+     *
+     * @param game The main game class, used to access global resources and methods.
+     */
     public MenuScreen(MazeRunnerGame game) {
-        this.game=game;
+        this.game = game;
+
         // Set up the camera and viewport
         var camera = new OrthographicCamera();
         camera.zoom = 1.5f;
@@ -98,92 +91,11 @@ public class MenuScreen implements Screen {
 
         // Create the stage for UI elements
         stage = new Stage(viewport, game.getSpriteBatch());
-
-        // Create a table for layout
-        Table tableM = new Table();
-        tableM.setFillParent(true);
-        stage.addActor(tableM);
-        tableM.top();
-        Table tableP = new Table();
-        tableP.setFillParent(true);
-        stage.addActor(tableP);
-        tableP.top();
-
-
-        // Add a welcome label
-        welcomeLabel = new Label("Welcome to BlazeMaze", game.getSkin(), "title");
-        tableM.add(welcomeLabel).padBottom(60).row();
-        welcomeLabel.setVisible(!game.getPaused());
-        // Add a button to start the game
-        TextButton goToGameButton = new TextButton("Play", game.getSkin());
-        tableM.add(goToGameButton).width(500).pad(10).row();
-        goToGameButton.setVisible(!game.getPaused());
-        // Create buttons for additional menu options
-        loadMap = new TextButton("Levels", game.getSkin());
-        tableM.add(loadMap).width(500).pad(10).row();
-        loadMap.setVisible(!game.getPaused());
-        exit = new TextButton("Exit", game.getSkin());
-        tableM.add(exit).width(500).pad(10).row();
-        exit.setVisible(!game.getPaused());
-
-        goToGameButton.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                game.goToGame();
-            }
-        });
-        // Add listeners to the buttons
-        loadMap.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                game.goToMenu();
-            }
-        });
-        exit.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                Gdx.app.exit();
-            }
-        });
-
-        // Create and add the paused label
-        // Initialize the pause menu visibility
-        pauseMenuVisible = game.getPaused();
-        pausedLabel = new Label("Game Paused", game.getSkin(), "title");
-        tableP.add(pausedLabel).padBottom(60).pad(10).row();
-        pausedLabel.setVisible(game.getPaused());
-        // Add a buttons to the paused menu
-        resumeGame = new TextButton("Resume", game.getSkin());
-        tableP.add(resumeGame).width(400).pad(10).row();
-        resumeGame.setVisible(game.getPaused());
-        newGame = new TextButton("New Game", game.getSkin());
-        tableP.add(newGame).width(400).pad(10).row();
-        newGame.setVisible(game.getPaused());
-        loadMap= new TextButton("Load Map", game.getSkin());
-        tableP.add(loadMap).width(400).pad(10).row();
-        loadMap.setVisible(game.getPaused());
-        returnMenu = new TextButton("Quit to Main Menu", game.getSkin());
-        returnMenu.setVisible(game.getPaused());
-        tableP.add(returnMenu).width(400).pad(10).row();
-        resumeGame.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                game.resume();
-            }
-        });
-        newGame.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                game.goToGame();
-            }
-        });
-        returnMenu.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                game.setPaused(false);
-                game.goToMenu();
-            }
-        });
+         pauseMenuVisible=game.getPaused();
+         visible=false;
+        // Set up the main menu and pause menu
+        mainMenu();
+        pauseMenu();
 
         // Create labels for victory and game over messages
         victory = new Label("Congratulations! You Won!", game.getSkin(), "default");
@@ -192,10 +104,141 @@ public class MenuScreen implements Screen {
         // Set labels to be initially invisible
         victory.setVisible(false);
         gameOver.setVisible(false);
-
-        // Add new game button and return to main menu button to the table
-
     }
+
+    // Utility method to create a Label with a specific style and visibility
+    private Label createLabel(String text, String style, boolean viz) {
+        Label label = new Label(text, game.getSkin(), style);
+        label.setVisible(viz);
+        return label;
+    }
+
+    // Utility method to create a TextButton with a specific label and visibility, and attach a listener
+    private TextButton createButton(String text, Runnable action,boolean viz) {
+        TextButton button = new TextButton(text, game.getSkin());
+        button.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                action.run();
+            }
+        });
+        button.setVisible(viz);
+        button.pad(10).row();
+        return button;
+    }
+
+    // Utility method to add multiple elements to a table with a specified width and padding
+    private void addElementsToTable(Table table, Actor... elements) {
+        for (Actor element : elements) {
+            table.add(element).width(500).pad(10).row();
+        }
+    }
+
+    // Action to show the levels menu
+    private void showLevelsMenu() {
+        game.disposeMenuScreen();
+        levelsMenu(true);
+    }
+
+    /**
+     * Sets up the main menu UI components.
+     */
+    public void mainMenu() {
+        // Create a table for layout
+        Table tableM = new Table();
+        tableM.setFillParent(true);
+        stage.addActor(tableM);
+
+        // Add a welcome label
+        welcomeLabel = createLabel("Welcome to BlazeMaze  ", "title",!pauseMenuVisible);
+        tableM.top();
+        tableM.add(welcomeLabel).padBottom(80).row();
+
+        // Add a button to start the game
+        goToGameButton = createButton("Play", this::goToGame,!pauseMenuVisible);
+
+        // Create buttons for additional menu options
+        loadMap = createButton("Levels", this::showLevelsMenu,!pauseMenuVisible);
+        exit = createButton("Exit", Gdx.app::exit,!pauseMenuVisible);
+
+        // Add buttons to main menu
+        addElementsToTable(tableM, welcomeLabel, goToGameButton, loadMap, exit);
+    }
+
+    /**
+     * Sets up the pause menu UI components.
+     */
+    public void pauseMenu() {
+        Table tableP = new Table();
+        tableP.setFillParent(true);
+        stage.addActor(tableP);
+        // Create and add the paused label
+        // Initialize the pause menu visibility
+        pausedLabel = createLabel(" Game Paused ", "title",pauseMenuVisible);
+        tableP.top();
+        tableP.add(pausedLabel).padBottom(80).row();
+        // Add buttons to the paused menu
+        resumeGame = createButton("Resume", game::resume,pauseMenuVisible);
+        newGame = createButton("New Game", this::goToGame,pauseMenuVisible);
+        loadMap = createButton("Load Map", this::showLevelsMenu,pauseMenuVisible);
+        returnMenu = createButton("Quit to Main Menu",() -> {
+            game.disposeMenuScreen();
+            game.setPaused(false);
+            game.goToMenu();
+        },pauseMenuVisible);
+
+        // Add buttons to pause menu
+        addElementsToTable(tableP, pausedLabel, resumeGame, newGame, loadMap, returnMenu);
+    }
+
+    /**
+     * Sets up the levels menu UI components.
+     *
+     * @param visible Whether the menu should be visible.
+     */
+    public void levelsMenu(boolean visible) {
+        this.visible = visible;
+        Table tableL = new Table();
+        tableL.setFillParent(true);
+        stage.addActor(tableL);
+        levelLabel = createLabel("Choose Your Map", "title",visible);
+        tableL.top();
+        tableL.add(levelLabel).padBottom(80).row();
+
+        level1 = createButton("Level 1", () -> game.getGameScreen().loadMap("level1"),visible);
+        level2 = createButton("Level 2", () -> game.getGameScreen().loadMap("level2"),visible);
+        level3 = createButton("Level 3", () -> game.getGameScreen().loadMap("level3"),visible);
+        level4 = createButton("Level 4", () -> game.getGameScreen().loadMap("level4"),visible);
+        level5 = createButton("Level 5", () -> game.getGameScreen().loadMap("level5"),visible);
+        custom = createButton("Custom", this::loadCustomMap,visible);
+        returnMenu = createButton("Back", this::goBackToMainMenu,visible);
+
+        // Add buttons to levels menu
+        addElementsToTable(tableL, level1, level2, level3, level4, level5, custom, returnMenu);
+    }
+
+    // Placeholder for loading a custom map (you can implement the logic)
+    private void loadCustomMap() {
+        // Implement logic for loading a custom map
+    }
+
+    // Action to go back to the main menu from levels menu
+    private void goBackToMainMenu() {
+     game.disposeMenuScreen();
+     if(pauseMenuVisible)
+         game.goToMenu();
+     else
+     {
+         game.setPaused(false);
+         game.goToMenu();
+     }
+    }
+
+    // Action to start the game
+    private void goToGame() {
+        game.goToGame();
+    }
+
     @Override
     public void render(float delta) {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT); // Clear the screen

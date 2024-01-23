@@ -22,12 +22,21 @@ public class MazeRunnerGame extends Game {
 
     // Sprite Batch for rendering
     private SpriteBatch spriteBatch;
+    private Boolean paused=false;
 
     // UI Skin
     private Skin skin;
 
     // Character animation downwards
     private Animation<TextureRegion> characterDownAnimation;
+
+    public Boolean getPaused() {
+        return paused;
+    }
+
+    public void setPaused(Boolean paused) {
+        this.paused = paused;
+    }
 
     /**
      * Constructor for MazeRunnerGame.
@@ -61,12 +70,13 @@ public class MazeRunnerGame extends Game {
      */
     public void goToMenu() {
         this.setScreen(new MenuScreen(this)); // Set the current screen to MenuScreen
-        if (gameScreen != null) {
-            gameScreen.dispose(); // Dispose the game screen if it exists
-            gameScreen = null;
+        if(!paused) {
+            if (gameScreen != null) {
+                gameScreen.dispose(); // Dispose the game screen if it exists
+                gameScreen = null;
+            }
         }
     }
-
     /**
      * Switches to the game screen.
      */

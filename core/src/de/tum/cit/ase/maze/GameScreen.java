@@ -42,8 +42,10 @@ public class GameScreen implements Screen {
     public void render(float delta) {
         // Check for escape key press to go back to the menu
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            game.setPaused(true);
             game.goToMenu();
         }
+
 
         ScreenUtils.clear(0, 0, 0, 1); // Clear the screen
 
@@ -60,7 +62,7 @@ public class GameScreen implements Screen {
         game.getSpriteBatch().begin(); // Important to call this before drawing anything
 
         // Render the text
-        font.draw(game.getSpriteBatch(), "Press ESC to go to menu", textX, textY);
+        font.draw(game.getSpriteBatch(), "Press ESC to Pause the Game", textX, textY);
 
         // Draw the character next to the text :) / We can reuse sinusInput here
         game.getSpriteBatch().draw(
